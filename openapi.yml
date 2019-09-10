@@ -1,0 +1,1697 @@
+openapi: 3.0.2
+
+info:
+  title: 'DockerMistress-Cluster'
+  version: '20190805'
+  description: DockerのRESTfulなPython CGI
+tags:
+  - name: "container"
+    description: "コンテナ関連のリクエスト(docker container)"
+  - name: "network"
+    description: "ネットワーク関連のリクエスト(docker network)"
+  - name: "image"
+    description: "イメージ関連のリクエスト(docker image)"
+  - name: "tar_export"
+    description: "tarファイル出力のリクエスト"
+  - name: "tar_import"
+    description: "tarファイル入力のリクエスト"
+  - name: "TODO"
+    description: "実装が不完全なもの"
+paths:
+  '/tar_import/load_container':
+    get:
+      summary: "コンテナの入力"
+      description: "コンテナをtarとして入力し、イメージを保存します。
+        <br>docker container importと同じです。"
+      tags:
+        - "tar_import"
+      parameters: 
+        - $ref: '#/components/parameters/filename'
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContImport' 
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/AlreadyExist'         
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/tar_import/extar':
+    get:
+      summary: "tarの入力"
+      description: "コンテナ内でtarを展開します。
+        <br>dockerコマンドとは対応しません。"
+      tags:
+        - "tar_import"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        - $ref: '#/components/parameters/filename' 
+        - $ref: '#/components/parameters/dir' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContExtar' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '454':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/tar_import/import_filepath':
+    get:
+      summary: "イメージのファイル入力(ローカルファイル）"
+      description: "Dockerのイメージをtarとして入力します。指定したフォルダ内を詮索するので、ファイル名を指定します。
+        <br>docker image load <イメージ名＞　と対応する。"
+      tags:
+        - "tar_export"
+      parameters: 
+        - $ref: '#/components/parameters/imgname' 
+        - $ref: '#/components/parameters/tagname'
+        - $ref: '#/components/parameters/filename' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseImgSave' 
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/RequestNotAllowedChar'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/tar_import/import_url':
+    get:
+      summary: "イメージのファイル入力(URL)"
+      description: "Dockerのイメージをtarとして入力します。指定したURLからダウンロードします。
+        <br>docker image load <イメージ名＞　と対応する。"
+      tags:
+        - "tar_export"
+      parameters: 
+        - $ref: '#/components/parameters/imgname' 
+        - $ref: '#/components/parameters/tagname' 
+        - $ref: '#/components/parameters/url' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseImgSave' 
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/RequestNotAllowedChar'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/tar_export/container_export':
+    get:
+      summary: "コンテナの出力"
+      description: "コンテナをtarとして出力します。
+        <br>docker container exportと同じです。"
+      tags:
+        - "tar_export"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContExport' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/tar_export/mktar':
+    get:
+      summary: "コンテナ内のファイル出力"
+      description: "コンテナ内のディレクトリをtarとして出力します。
+        <br>dockerのコマンドに対応するものはないです。"
+      tags:
+        - "tar_export"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        - $ref: '#/components/parameters/dir' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContMktar' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/tar_export/image_save':
+    get:
+      summary: "イメージのファイル出力"
+      description: "Dockerのイメージをtarとして出力します。
+        <br>docker image save <イメージ名＞　と対応する。"
+      tags:
+        - "tar_export"
+      parameters: 
+        - $ref: '#/components/parameters/imgname' 
+        - $ref: '#/components/parameters/tagname' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseImgSave' 
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/RequestNotAllowedChar'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/image/pull':
+    get:
+      summary: "イメージを取得します"
+      description: "ローカルにイメージをダウンロードしておきます
+      <br>docker image pullと同じ。"
+      tags:
+        - "image"
+      parameters: 
+        - $ref: '#/components/parameters/imgname' 
+        - $ref: '#/components/parameters/tagname' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/RequestNotAllowedChar'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/image/delete':
+    get:
+      summary: "イメージを削除します"
+      description: "ローカルにあるイメージを削除します強制かは謎。
+      <br>docker image delete　と同じ。"
+      tags:
+        - "image"
+      parameters: 
+        - $ref: '#/components/parameters/imgname' 
+        - $ref: '#/components/parameters/tagname' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseImgDeleted'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/RequestNotAllowedChar'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/image/inspect':
+    get:
+      summary: "イメージを調べます"
+      description: "イメージの情報を表示します
+      <br>docker image inspect　と同じ。"
+      tags:
+        - "image"
+      parameters: 
+        - $ref: '#/components/parameters/imgname' 
+        - $ref: '#/components/parameters/tagname' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseImgInspect' 
+        '405':
+          $ref: '#/components/responses/RequestNotAllowedChar'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/image/prune':
+    get:
+      summary: "使われていないイメージの削除"
+      description: "宙ぶらりんのイメージを削除します。
+      <br>docker image prune　と同じ。"
+      tags:
+        - "image"
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseImgPrune' 
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/network/create':
+    get:
+      summary: "ネットワークを作成します"
+      description: "ネットワークを作成します。ローカルのコンテナを結ぶことを想定しています。
+      <br>subnet=\"192.168.0.0/24\"、attachable。
+      <br>docker network createと同じ。"
+      tags:
+      - "network"
+      parameters: 
+        - $ref: '#/components/parameters/network' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseNetCreate' 
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/network/remove':
+    get:
+      summary: "ネットワークを削除します"
+      description: "ネットワークを削除します。強制的に消すかは定かではありません
+      <br>docker network remove と同じ。"
+      tags:
+      - "network"
+      parameters: 
+        - $ref: '#/components/parameters/network' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseNetRemove' 
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/network/prune':
+    get:
+      summary: "不要なネットワークを一括削除します"
+      description: "ネットワークを削除します。強制的に消すかは定かではありません
+      <br>docker network prune と同じ。"
+      tags:
+       - "network"
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault' 
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/network/connect':
+    get:
+      summary: "ネットワーク接続"
+      description: "コンテナをネットワークに接続します。
+      <br>docker network connect ネットワーク名　コンテナ名 と同じ。"
+      tags:
+        - "network"
+      parameters: 
+        - $ref: '#/components/parameters/network' 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer' 
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/network/disconnect':
+    get:
+      summary: "ネットワーク切断"
+      description: "コンテナをネットワークから切断します。
+      <br>docker network disconnect ネットワーク名　コンテナ名 と同じ。"
+      tags:
+        - "network"
+      parameters: 
+        - $ref: '#/components/parameters/network' 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer' 
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/getid':
+    get:
+      summary: "コンテナIDを取得します"
+      description: "コンテナ名からコンテナIDを取得します"
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContId' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer' 
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/getip':
+    get:
+      summary: "コンテナのIPを取得します"
+      description: "コンテナ名からコンテナのIPを取得します。<br>
+       eth0: 外界とのコネクションの媒介<br>
+       eth1: プライベートネットワーク
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContIPAddr' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer' 
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/commit':
+    get:
+      summary: "既存のコンテナからイメージを作成"
+      description: "既存のコンテナからイメージを作成します。すでに存在するイメージ名は指定できません。<br>
+      docker container commit と同じです
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        - $ref: '#/components/parameters/imgname' 
+        - $ref: '#/components/parameters/tagname' 
+        - $ref: '#/components/parameters/authorname' 
+        - $ref: '#/components/parameters/commitmsg' 
+        - $ref: '#/components/parameters/dockerfileline' 
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContCommit' 
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '405':
+          $ref: '#/components/responses/AlreadyExist' 
+        '445':
+          $ref: '#/components/responses/RequestInvalid'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/exec':
+    get:
+      summary: "コンテナ内でコマンドを実行"
+      description: "既存のコンテナからイメージを作成します。すでに存在するイメージ名は指定できません。 
+        <br>docker container execと同じ。
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        - $ref: '#/components/parameters/cmd' 
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '444':
+          $ref: '#/components/responses/NotRunningCont'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/inspect':
+    get:
+      summary: "コンテナの情報を表示します"
+      description: "コンテナの情報を表示します。
+        <br>docker container inspectと同じ。
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContInspect'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/remove':
+    get:
+      summary: "コンテナを削除します"
+      description: "コンテナの情報を表示します。
+        <br>docker container removeと同じ。
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/pause':
+    get:
+      summary: "コンテナを一時停止します"
+      description: "コンテナを一時停止します。
+        <br>返り値 404で AlreadyContPaused ...すでにコンテナが一時停止されている
+        <br>docker container pauseと同じ。
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/unpause':
+    get:
+      summary: "コンテナの一時停止を解除します"
+      description: "コンテナの一時停止を解除します
+        <br>返り値 404で NotContPaused ...コンテナが一時停止されていない
+        <br>docker container unpauseと同じ。
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/kill':
+    get:
+      summary: "コンテナを強制終了"
+      description: "コンテナを強制終了させます
+        <br>コンテナが起動していないといけません
+      "
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotRunningCont'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/restart':
+    get:
+      summary: "コンテナを再起動"
+      description: "コンテナを再起動させます"
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/start':
+    get:
+      summary: "コンテナを起動"
+      description: "コンテナを起動させます"
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/stop':
+    get:
+      summary: "コンテナを停止"
+      description: "コンテナを停止させます"
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/diff':
+    get:
+      summary: "ファイル変更を表示"
+      description: "イメージに対するコンテナのファイル変更を表示します。
+      <br> \"result\": [
+      <br>       {
+      <br>           \"Path\": \"/run\",
+      <br>           \"Kind\": 0
+      <br>       },
+      <br>       {........"
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/top':
+    get:
+      summary: "いわゆるtop"
+      description: "いわゆるtopを表示"
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContTop'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/port':
+    get:
+      summary: "portを表示"
+      description: "プライベートポートに対応する外部ポートを表示"
+      tags:
+      - "container"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        - $ref: '#/components/parameters/private_port' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/update':
+    get:
+      summary: "コンテナ情報の更新"
+      description: "コンテナ情報を更新します"
+      tags:
+      - "container"
+      - "TODO"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        - $ref: '#/components/parameters/memory' 
+        - $ref: '#/components/parameters/cpu' 
+        - $ref: '#/components/parameters/restart' 
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseContUpdate'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+  '/container/create':
+    get:
+      summary: "コンテナの作成"
+      description: "新たなコンテナを作成します"
+      tags:
+      - "container"
+      - "TODO"
+      parameters: 
+        - $ref: '#/components/parameters/containername' 
+        - $ref: '#/components/parameters/memory' 
+        - $ref: '#/components/parameters/cpu' 
+        - $ref: '#/components/parameters/restart' 
+        - $ref: '#/components/parameters/storage' 
+        - $ref: '#/components/parameters/writeMBs' 
+        - $ref: '#/components/parameters/readMBs' 
+        - $ref: '#/components/parameters/ipv4' 
+        - $ref: '#/components/parameters/ipv6'
+        - $ref: '#/components/parameters/ports' 
+        - $ref: '#/components/parameters/envs'
+        - $ref: '#/components/parameters/cmd'
+        - $ref: '#/components/parameters/interactive' 
+        - $ref: '#/components/parameters/tty' 
+        - $ref: '#/components/parameters/detach' 
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ResponseOKDefault'
+        '404':
+          $ref: '#/components/responses/NotFoundContainer'
+        '500':
+          $ref: '#/components/responses/ErrorDockerAPI'
+components:
+    parameters:
+      network:
+          in: query
+          name: "network"
+          required: True
+          schema:
+            type: string
+          description: network名の指定（必須）
+      containername:
+          in: query
+          name: "containername"
+          required: True
+          schema:
+            type: string
+          description: コンテナ名の指定（必須）
+      imgname:
+          in: query
+          name: "imgname"
+          required: True
+          schema:
+            type: string
+          description: "イメージ名(リポジトリ名 haniokasai/busybox)の指定（必須）"
+      tagname:
+          in: query
+          name: "tagname"
+          required: False
+          schema:
+            type: string
+          example: "latest"
+          description: "イメージタグ(e.g. :latest)の指定（任意）"
+      authorname:
+          in: query
+          name: "authorname"
+          required: False
+          schema:
+            type: string
+          description: "イメージの作者名（任意）"
+      commitmsg:
+          in: query
+          name: "commitmsg"
+          required: False
+          schema:
+            type: string
+          description: "イメージのコミットメッセージ（任意）"
+      dockerfileline:
+          in: query
+          name: "dockerfileline"
+          required: False
+          schema:
+            type: string
+          example: "{\"CMD\":[\"apachectl\", \"-DFOREGROUND\"]}"
+          description: "DockerFile Json形式のString(任意）"
+      cmd:
+          in: query
+          name: "cmd"
+          required: True
+          schema:
+            type: string
+          example: "echo hello!"
+          description: "コマンド（空白おーけー）"
+      dir:
+          in: query
+          name: "dir"
+          required: True
+          schema:
+            type: string
+          example: "/home/haniokasai"
+          description: "絶対パス"
+      private_port:
+          in: query
+          name: "private_port"
+          required: True
+          schema:
+            type: integer
+          example: 80
+          description: "プライベートのポート番号" 
+      filename:
+          in: query
+          name: "filename"
+          required: True
+          schema:
+            type: string
+          example: "testname"
+          description: "ファイル名を入力"
+      url:
+          in: query
+          name: "url"
+          required: True
+          schema:
+            type: string
+          example: "https://example.com/example.tar"
+          description: "URLを入力"
+      restart:
+          in: query
+          name: "restart"
+          required: False
+          schema:
+            type: string
+            enum:
+             - "no"
+             - "on-failure"
+             - "always"
+             - "unless-stopped"
+          example: "no"
+          description: "再起動ポリシーの指定:--restart"
+      memory:
+          in: query
+          name: "memory"
+          required: False
+          schema:
+            type: number
+          example: 100
+          description: "メモリ容量の変更:--memory(MB)"
+      cpu:
+          in: query
+          name: "cpu"
+          required: False
+          schema:
+            type: number
+          example: 0.1
+          description: "CPU使用率の制限、1/コア:--cpus"     
+      storage:
+          in: query
+          name: "storage"
+          required: False
+          schema:
+            type: number
+          example: 10
+          description: "ベースサイズ制限、GB。:--storage-opt" 
+      readMBs:
+          in: query
+          name: "readMB"
+          required: False
+          schema:
+            type: integer
+          example: 50
+          description: "読み込み速度制限、MB/s:--device-read-bps"  
+      writeMBs:
+          in: query
+          name: "writeMBs"
+          required: False
+          schema:
+            type: integer
+          example: 50
+          description: "書き込み速度制限、MB/s:--device-write-bps="
+      ipv4:
+          in: query
+          name: "ipv4"
+          required: False
+          schema:
+            type: string
+          example: "192.168.1.1"
+          description: "ipv4の明示的指定、ipv6と両立しない"
+      ipv6:
+          in: query
+          name: "ipv6"
+          required: False
+          schema:
+            type: string
+          example: "240d:1a:7e:1b00:813e:47e1:1ea2:710a"
+          description: "ipv6の明示的指定、ipv4と両立しない"
+      envs:
+          in: query
+          name: "envs"
+          required: False
+          schema:
+            type: string
+          example: {"passwd":"hogehoge","pi":"yo"}
+          description: "environment (dict or list): A dictionary or a list of strings in
+                the following format ``[\"PASSWORD=xxx\"]`` or
+                ``{\"PASSWORD\": \"xxx\"}``."  
+      ports:
+          in: query
+          name: "ports"
+          required: False
+          schema:
+            type: string
+          example: {"8080":"80","8081":"443"}
+          description: "ホストとコンテナのポートの対応（最初しか追加できない)"  
+      tty:
+          in: query
+          name: "tty"
+          required: True
+          schema:
+            type: boolean
+          example: true
+          description: "擬似TTYを使うか否か(interactiveと共に使うこと)"
+      interactive:
+          in: query
+          name: "interactive"
+          required: True
+          schema:
+            type: boolean
+          example: true
+          description: "インタラクティブ＝対話的にするかどうか=コンテナの STDIN にアタッチする(ttyと共に使うこと）"
+      detach:
+          in: query
+          name: "detach"
+          required: True
+          schema:
+            type: boolean
+          example: true
+          description: " コンテナをバックグラウンドで実行し、コンテナ ID を表示"
+    responses:
+      ResponseContId:
+        description: '200:コンテナ名に対応するコンテナの存在する際に、IDを返答'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  action:
+                    type: string
+                    example: getid
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["id":コンテナのID]
+      ResponseContExport:
+        description: '200:コンテナ名に対応するコンテナをtarファイルとして出力するときのレスポンス。'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [{
+        "filename": "1565773107589datavol",
+        "url": "/home/hanitek/DocumentRoot/tarpool/download/1565773107589datavol.tar",
+        "success": true
+      }]
+      ResponseContImport:
+        description: '200:コンテナ名に対応するコンテナをtarファイルとして出力するときのレスポンス。'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [{
+        "filename": "1564495552103objectivegolick",
+        "url": "/home/hanitek/DocumentRoot/tarpool/upload/1564495552103objectivegolick.tar",
+        "result": "{\"status\":\"sha256:d4b36008e119251d9ae2bb8162308b9253003806c717c811361bb7e088216dfd\"}\r\n",
+        "success": true
+      }]
+      ResponseContUpdate:
+        description: '200:コンテナの設定変更の結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [{
+        "result": {
+            "Warnings": [
+                "Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap."
+            ]
+        },
+        "success": true
+      }]
+      ResponseImgSave:
+        description: '200:コンテナ名に対応するコンテナをtarファイルとして出力するときのレスポンス。'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [{
+        "filename": "1565774890786nginxlatest",
+        "url": "/home/hanitek/DocumentRoot/tarpool/download/1565774890786nginxlatest.tar",
+        "success": true
+      }]
+      ResponseContMktar:
+        description: '200:コンテナ名に対応するコンテナをtarファイルとして出力するときのレスポンス。'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [{
+        "filename": "1565775082733 home datavol",
+        "url": "/home/hanitek/DocumentRoot/tarpool/download/1565775082733 home datavol.tar",
+        "result": {
+            "name": "home",
+            "size": 6,
+            "mode": 2147484141,
+            "mtime": "2019-06-15T07:03:34+09:00",
+            "linkTarget": ""
+        },
+        "success": true
+      }]
+      ResponseContExtar:
+        description: '200:コンテナ名に対応するコンテナをtarファイルとして入力するときのレスポンス。'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [{
+        "filename": "1564495552103objectivegolick",
+        "url": "/home/hanitek/DocumentRoot/tarpool/upload/1564495552103objectivegolick.tar",
+        "result": "{\"status\":\"sha256:d4b36008e119251d9ae2bb8162308b9253003806c717c811361bb7e088216dfd\"}\r\n",
+        "success": true
+      }]
+      ResponseContIPAddr:
+        description: '200:コンテナ名に対応するコンテナのIPv4アドレスを返答。netsはネットワーク名を意味します'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: string
+                    example:
+                      ["eth0": "172.17.0.2",
+                      "eth1": "172.19.0.2",
+                      "nets": [
+                          "bridge": "172.17.0.2",
+                          "localnetwork": "172.19.0.2"
+                      ]]
+      ResponseContCommit:
+        description: '200:コンテナのイメージへのコミットの結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: string
+                    example:
+                          ["return": {
+                            "result": {
+                              "Id": "sha256:05cf4775ecc664b5060e46e707e1895da38a4053907d91db70291c7f97369134"
+                            },
+                            "success": true,
+                            "id": "854af1a6a8213d4ee8fbd8e2b7626b97125c49a48  3f621896307261f7f6ef1e6"
+                            }]
+      ResponseImgPrune:
+        description: '200:不要なイメージの削除の結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: string
+                    example:
+                      ["result": {
+                      "ImagesDeleted": [
+                {
+                    "Deleted": "sha256:5568808153dcaaa46f2306f50f0c18e54bb1d1816e6630e07fa9e6571d2a1dc1"
+                },
+                {
+                    "Deleted": "sha256:d4b36008e119251d9ae2bb8162308b9253003806c717c811361bb7e088216dfd"
+                },
+                {
+                    "Deleted": "sha256:6c725587f652dd40332052217b54487d0a71fa168d2339023e02260d26580640"
+                },
+                {
+                    "Deleted": "sha256:23ac29805aa11d030987009e9c6a7122aa7165469145ee082ff55ad2e4556914"
+                },
+                {
+                    "Deleted": "sha256:d9a9f80d98c6698d24ed86676cce18c4acadd2461465624868c934726cd5fdf9"
+                },
+                {
+                    "Deleted": "sha256:11c85edece66c50ac6c90b0f6dc4fb2742804cc2bf3dc2aedfd75bcc27892f50"
+                },
+                {
+                    "Deleted": "sha256:c0b611d25ed035039da06f47731c06599c1421e2534306637b3036f473c83c62"
+                },
+                {
+                    "Deleted": "sha256:5f3ce7b70dfd4e3aa2f4bb5eeb43e45cd3ee39f88b39346e1cc85851ff7676da"
+                }
+            ],
+            "SpaceReclaimed": 0}
+      ]
+      ResponseNetRemove:
+        description: '200:ネットワークのremoveの結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: string
+                    example:  [       
+                      "result": null,
+                       "success": true]  
+      ResponseNetCreate:
+        description: '200:コンテナのイメージへのコミットの結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: string
+                    example:
+                          ["return": {
+                                    "result": {
+            "Id": "y1hu7r0bcl42rfbjbh68d5zac",
+            "Warning": ""
+        },
+        "success": true
+                            }]
+      ResponseImgInspect:
+        description: '200:イメージのinspectの結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: string
+                    example:  ["result": {
+            "Id": "sha256:4733136e5c3c63c6fea37ebbecd6962ed54c3d1bdded1e82bae972c97d8b8772",
+            "RepoTags": [
+                "nginx:latest"
+            ],
+            "RepoDigests": [
+                "nginx@sha256:5411d8897c3da841a1f45f895b43ad4526eb62d3393c3287124a56be49962d41"
+            ],
+            "Parent": "",
+            "Comment": "",
+            "Created": "2019-08-14T07:26:56.054362723Z",
+            "Container": "f3cb4f4ba2f8c299431cc2d8b2729dfc41c5b0fe711ae12aefdd2e4d65d71b1b",
+            "ContainerConfig": {
+                "Hostname": "f3cb4f4ba2f8",
+                "Domainname": "",
+                "User": "",
+                "AttachStdin": false,
+                "AttachStdout": false,
+                "AttachStderr": false,
+                "ExposedPorts": {
+                    "80/tcp": {}
+                },
+                "Tty": false,
+                "OpenStdin": false,
+                "StdinOnce": false,
+                "Env": [
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                    "NGINX_VERSION=1.17.2",
+                    "NJS_VERSION=0.3.3",
+                    "PKG_RELEASE=1~buster"
+                ],
+                "Cmd": [
+                    "/bin/sh",
+                    "-c",
+                    "#(nop) ",
+                    "CMD [\"nginx\" \"-g\" \"daemon off;\"]"
+                ],
+                "ArgsEscaped": true,
+                "Image": "sha256:92609a8235abf70aa01a2b0a119ca9bad9fd87a09f08d4c1b24d215453528a7b",
+                "Volumes": null,
+                "WorkingDir": "",
+                "Entrypoint": null,
+                "OnBuild": null,
+                "Labels": {
+                    "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+                },
+                "StopSignal": "SIGTERM"
+            },
+            "DockerVersion": "18.06.1-ce",
+            "Author": "",
+            "Config": {
+                "Hostname": "",
+                "Domainname": "",
+                "User": "",
+                "AttachStdin": false,
+                "AttachStdout": false,
+                "AttachStderr": false,
+                "ExposedPorts": {
+                    "80/tcp": {}
+                },
+                "Tty": false,
+                "OpenStdin": false,
+                "StdinOnce": false,
+                "Env": [
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                    "NGINX_VERSION=1.17.2",
+                    "NJS_VERSION=0.3.3",
+                    "PKG_RELEASE=1~buster"
+                ],
+                "Cmd": [
+                    "nginx",
+                    "-g",
+                    "daemon off;"
+                ],
+                "ArgsEscaped": true,
+                "Image": "sha256:92609a8235abf70aa01a2b0a119ca9bad9fd87a09f08d4c1b24d215453528a7b",
+                "Volumes": null,
+                "WorkingDir": "",
+                "Entrypoint": null,
+                "OnBuild": null,
+                "Labels": {
+                    "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+                },
+                "StopSignal": "SIGTERM"
+            },
+            "Architecture": "amd64",
+            "Os": "linux",
+            "Size": 125850912,
+            "VirtualSize": 125850912,
+            "GraphDriver": {
+                "Data": {
+                    "LowerDir": "/var/lib/docker/overlay2/1f626ac483eeb7b1bbd94df1f40d194cd10553d03d633ed35eb7733811f36784/diff:/var/lib/docker/overlay2/231ef1913c61e07055de8af3de777641fbbe291ebc39efe69b87edd7c23d21df/diff",
+                    "MergedDir": "/var/lib/docker/overlay2/a55fc5ac45076d3e1377e50fc1d1aa877e05e28f5242617c71d2f1c94d24c755/merged",
+                    "UpperDir": "/var/lib/docker/overlay2/a55fc5ac45076d3e1377e50fc1d1aa877e05e28f5242617c71d2f1c94d24c755/diff",
+                    "WorkDir": "/var/lib/docker/overlay2/a55fc5ac45076d3e1377e50fc1d1aa877e05e28f5242617c71d2f1c94d24c755/work"
+                },
+                "Name": "overlay2"
+            },
+            "RootFS": {
+                "Type": "layers",
+                "Layers": [
+                    "sha256:1c95c77433e8d7bf0f519c9d8c9ca967e2603f0defbf379130d9a841cca2e28e",
+                    "sha256:2840f47eae67a38a102ed4da01ff56dad2de15ae18f88eae6061be7ec3707fe2",
+                    "sha256:1dcb7ce7cf3241a4be203fb896b832a910226fcfbe02e04865f8189f291640f6"
+                ]
+            },
+            "Metadata": {
+                "LastTagTime": "0001-01-01T00:00:00Z"
+            }
+        },
+        "success": true,
+        "imagename": "nginx",
+        "version": "latest",
+    
+      ]
+        
+      ResponseContInspect:
+        description: '200:コンテナのinspectの結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  action:
+                    type: string
+                    example: getip
+                  return:
+                    type: string
+                    example:
+                          [
+                            "result": {
+            "Id": "854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6",
+            "Created": "2019-08-04T07:42:19.552659655Z",
+            "Path": "nginx",
+            "Args": [
+                "-g",
+                "daemon off;"
+            ],
+            "State": {
+                "Status": "running",
+                "Running": true,
+                "Paused": false,
+                "Restarting": false,
+                "OOMKilled": false,
+                "Dead": false,
+                "Pid": 20390,
+                "ExitCode": 0,
+                "Error": "",
+                "StartedAt": "2019-08-05T15:04:53.534965631Z",
+                "FinishedAt": "2019-08-04T16:57:30.476403598+09:00"
+            },
+            "Image": "sha256:e445ab08b2be8b178655b714f89e5db9504f67defd5c7408a00bade679a50d44",
+            "ResolvConfPath": "/var/lib/docker/containers/854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6/resolv.conf",
+            "HostnamePath": "/var/lib/docker/containers/854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6/hostname",
+            "HostsPath": "/var/lib/docker/containers/854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6/hosts",
+            "LogPath": "/var/lib/docker/containers/854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6/854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6-json.log",
+            "Name": "/nngin",
+            "RestartCount": 0,
+            "Driver": "overlay2",
+            "Platform": "linux",
+            "MountLabel": "",
+            "ProcessLabel": "",
+            "AppArmorProfile": "docker-default",
+            "ExecIDs": null,
+            "HostConfig": {
+                "Binds": null,
+                "ContainerIDFile": "",
+                "LogConfig": {
+                    "Type": "json-file",
+                    "Config": {}
+                },
+                "NetworkMode": "default",
+                "PortBindings": {},
+                "RestartPolicy": {
+                    "Name": "no",
+                    "MaximumRetryCount": 0
+                },
+                "AutoRemove": false,
+                "VolumeDriver": "",
+                "VolumesFrom": null,
+                "CapAdd": null,
+                "CapDrop": null,
+                "Capabilities": null,
+                "Dns": [],
+                "DnsOptions": [],
+                "DnsSearch": [],
+                "ExtraHosts": null,
+                "GroupAdd": null,
+                "IpcMode": "private",
+                "Cgroup": "",
+                "Links": null,
+                "OomScoreAdj": 0,
+                "PidMode": "",
+                "Privileged": false,
+                "PublishAllPorts": false,
+                "ReadonlyRootfs": false,
+                "SecurityOpt": null,
+                "UTSMode": "",
+                "UsernsMode": "",
+                "ShmSize": 67108864,
+                "Runtime": "runc",
+                "ConsoleSize": [
+                    0,
+                    0
+                ],
+                "Isolation": "",
+                "CpuShares": 0,
+                "Memory": 0,
+                "NanoCpus": 0,
+                "CgroupParent": "",
+                "BlkioWeight": 0,
+                "BlkioWeightDevice": [],
+                "BlkioDeviceReadBps": null,
+                "BlkioDeviceWriteBps": null,
+                "BlkioDeviceReadIOps": null,
+                "BlkioDeviceWriteIOps": null,
+                "CpuPeriod": 0,
+                "CpuQuota": 0,
+                "CpuRealtimePeriod": 0,
+                "CpuRealtimeRuntime": 0,
+                "CpusetCpus": "",
+                "CpusetMems": "",
+                "Devices": [],
+                "DeviceCgroupRules": null,
+                "DeviceRequests": null,
+                "KernelMemory": 0,
+                "KernelMemoryTCP": 0,
+                "MemoryReservation": 0,
+                "MemorySwap": 0,
+                "MemorySwappiness": null,
+                "OomKillDisable": false,
+                "PidsLimit": null,
+                "Ulimits": null,
+                "CpuCount": 0,
+                "CpuPercent": 0,
+                "IOMaximumIOps": 0,
+                "IOMaximumBandwidth": 0,
+                "MaskedPaths": [
+                    "/proc/asound",
+                    "/proc/acpi",
+                    "/proc/kcore",
+                    "/proc/keys",
+                    "/proc/latency_stats",
+                    "/proc/timer_list",
+                    "/proc/timer_stats",
+                    "/proc/sched_debug",
+                    "/proc/scsi",
+                    "/sys/firmware"
+                ],
+                "ReadonlyPaths": [
+                    "/proc/bus",
+                    "/proc/fs",
+                    "/proc/irq",
+                    "/proc/sys",
+                    "/proc/sysrq-trigger"
+                ]
+            },
+            "GraphDriver": {
+                "Data": {
+                    "LowerDir": "/var/lib/docker/overlay2/2e380bee21f0278594d920a5b176e7b7f4bf312302d124788642f29c6233ab53-init/diff:/var/lib/docker/overlay2/841bd89d6db3b101fe8c876c81da13f2a0699a1c4fdd788e1393670896476180/diff:/var/lib/docker/overlay2/0faa0335804821e13c62ffa37fbdb8c01a629fe5e0bd2b7c135d1d125c03f534/diff:/var/lib/docker/overlay2/3a042b18c0db2bc436bedbbc85268f1d27b4a9000fca621e1404975b878fd931/diff",
+                    "MergedDir": "/var/lib/docker/overlay2/2e380bee21f0278594d920a5b176e7b7f4bf312302d124788642f29c6233ab53/merged",
+                    "UpperDir": "/var/lib/docker/overlay2/2e380bee21f0278594d920a5b176e7b7f4bf312302d124788642f29c6233ab53/diff",
+                    "WorkDir": "/var/lib/docker/overlay2/2e380bee21f0278594d920a5b176e7b7f4bf312302d124788642f29c6233ab53/work"
+                },
+                "Name": "overlay2"
+            },
+            "Mounts": [],
+            "Config": {
+                "Hostname": "854af1a6a821",
+                "Domainname": "",
+                "User": "",
+                "AttachStdin": false,
+                "AttachStdout": true,
+                "AttachStderr": true,
+                "ExposedPorts": {
+                    "80/tcp": {}
+                },
+                "Tty": false,
+                "OpenStdin": false,
+                "StdinOnce": false,
+                "Env": [
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                    "NGINX_VERSION=1.17.2",
+                    "NJS_VERSION=0.3.3",
+                    "PKG_RELEASE=1~buster"
+                ],
+                "Cmd": [
+                    "nginx",
+                    "-g",
+                    "daemon off;"
+                ],
+                "Image": "nginx",
+                "Volumes": null,
+                "WorkingDir": "",
+                "Entrypoint": null,
+                "OnBuild": null,
+                "Labels": {
+                    "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+                },
+                "StopSignal": "SIGTERM"
+            },
+            "NetworkSettings": {
+                "Bridge": "",
+                "SandboxID": "c19c434f5851e06224ee2fe416c53cb4df282fa98f9948d77e89a890171ba591",
+                "HairpinMode": false,
+                "LinkLocalIPv6Address": "",
+                "LinkLocalIPv6PrefixLen": 0,
+                "Ports": {
+                    "80/tcp": null
+                },
+                "SandboxKey": "/var/run/docker/netns/c19c434f5851",
+                "SecondaryIPAddresses": null,
+                "SecondaryIPv6Addresses": null,
+                "EndpointID": "6df39fc72d5f6cd363a5a0d5a1bce0cfbf5688dba26aad549751c2d55a8f1084",
+                "Gateway": "172.17.0.1",
+                "GlobalIPv6Address": "",
+                "GlobalIPv6PrefixLen": 0,
+                "IPAddress": "172.17.0.2",
+                "IPPrefixLen": 16,
+                "IPv6Gateway": "",
+                "MacAddress": "02:42:ac:11:00:02",
+                "Networks": {
+                    "bridge": {
+                        "IPAMConfig": null,
+                        "Links": null,
+                        "Aliases": null,
+                        "NetworkID": "82dec77be61b32a658249baa27fde65399e52d8f143eaefb3c48716dedc2c971",
+                        "EndpointID": "6df39fc72d5f6cd363a5a0d5a1bce0cfbf5688dba26aad549751c2d55a8f1084",
+                        "Gateway": "172.17.0.1",
+                        "IPAddress": "172.17.0.2",
+                        "IPPrefixLen": 16,
+                        "IPv6Gateway": "",
+                        "GlobalIPv6Address": "",
+                        "GlobalIPv6PrefixLen": 0,
+                        "MacAddress": "02:42:ac:11:00:02",
+                        "DriverOpts": null
+                    },
+                    "ppp": {
+                        "IPAMConfig": {},
+                        "Links": null,
+                        "Aliases": [
+                            "854af1a6a821"
+                        ],
+                        "NetworkID": "7533f68503f4e9bd3240aef44874d0e9bea78c0a63f50a2a2ba34b2e78fdd0b8",
+                        "EndpointID": "ac9e0e12e9c802026d975fade967547c654dba83a647cd028d385dee18f746bc",
+                        "Gateway": "172.19.0.1",
+                        "IPAddress": "172.19.0.2",
+                        "IPPrefixLen": 16,
+                        "IPv6Gateway": "",
+                        "GlobalIPv6Address": "",
+                        "GlobalIPv6PrefixLen": 0,
+                        "MacAddress": "02:42:ac:13:00:02",
+                        "DriverOpts": {}
+                    }
+                }
+            }
+        },
+        "success": true,
+        "id": "854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6"
+                            ]
+      ResponseContTop:
+        description: '200:コンテナのtopの結果'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  action:
+                    type: string
+                    example: getip
+                  return:
+                    type: string
+                    example:
+                          [{
+    "error": false,
+    "return": {
+        "result": {
+            "Processes": [
+                [
+                    "root",
+                    "24347",
+                    "24320",
+                    "0",
+                    "22:55",
+                    "?",
+                    "00:00:00",
+                    "nginx: master process nginx -g daemon off;"
+                ],
+                [
+                    "systemd+",
+                    "24433",
+                    "24347",
+                    "0",
+                    "22:55",
+                    "?",
+                    "00:00:00",
+                    "nginx: worker process"
+                ]
+            ],
+            "Titles": [
+                "UID",
+                "PID",
+                "PPID",
+                "C",
+                "STIME",
+                "TTY",
+                "TIME",
+                "CMD"
+            ]
+        },
+        "success": true,
+        "id": "854af1a6a8213d4ee8fbd8e2b7626b97125c49a483f621896307261f7f6ef1e6"
+    }
+}]
+      ResponseOKDefault:
+        description: '200:正常なレスポンスの一例'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  action:
+                    type: string
+                    example: getip
+                  return:
+                    type: string
+                    example:
+                          ["return": {
+                            "result": "hello%21%0A",
+                            "success": true,
+                            "id": "854af1a6a8213d4ee8fbd8e2b7626b97125c49a48  3f621896307261f7f6ef1e6"
+                            }]
+      ResponseImgDeleted:
+        description: '200:コンテナ名に対応するコンテナをtarファイルとして出力するときのレスポンス。'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: false
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [{
+        "result": [
+            {
+                "Untagged": "nginx:latest"
+            },
+            {
+                "Untagged": "nginx@sha256:5411d8897c3da841a1f45f895b43ad4526eb62d3393c3287124a56be49962d41"
+            },
+            {
+                "Deleted": "sha256:4733136e5c3c63c6fea37ebbecd6962ed54c3d1bdded1e82bae972c97d8b8772"
+            },
+            {
+                "Deleted": "sha256:e231305f6f20b8195f5f368b23bb39c43f9bce1dcbcf514d11eb40ad8234388e"
+            },
+            {
+                "Deleted": "sha256:4570d70804cae01cd64e62653e2319b410bbac560793bcfcc9d0c4725ef7f72b"
+            },
+            {
+                "Deleted": "sha256:1c95c77433e8d7bf0f519c9d8c9ca967e2603f0defbf379130d9a841cca2e28e"
+            }
+        ],
+        "success": true,
+        "imagename": "nginx",
+        "version": "latest"
+      }]
+      NotFound:
+        description:
+            '404:何かが存在しない'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: true
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["msg":"NotFound;"]
+      NotFoundContainer:
+        description:
+            '404:コンテナ名に対応するコンテナの存在しない'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: true
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["msg":"NotFoundContainer;コンテナ名"]
+      NotRunningCont:
+        description:
+            '404:コンテナが稼働していない'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: true
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["msg":"NotRunningCont;"]
+      AlreadyExist:
+        description:
+            '405:すでに存在する'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: true
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["msg":"AlreadyExist;"]
+      RequestInvalid:
+        description:
+            '405:不正なリクエスト'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: true
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["msg":"RequestInvalid;"]
+      RequestNotAllowedChar:
+        description:
+            '405:不正な文字列'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: true
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["msg":"NotAllowedChar;"]
+      ErrorDockerAPI:
+        description:
+            '500:DockerAPIとのコネクションに失敗した'
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    default: true
+                  action:
+                    type: string
+                    example: "ErrorDockerAPI"
+                  return:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ["msg":"ErrorDockerAPI;エラーログ"]
